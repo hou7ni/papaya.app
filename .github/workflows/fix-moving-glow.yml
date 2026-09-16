@@ -3,6 +3,8 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+permissions:
+  contents: write
 jobs:
   fix:
     runs-on: ubuntu-latest
@@ -28,7 +30,8 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add app.html
           git diff --cached --quiet || git commit -m 'Implement true moving glow border trails'
-          git push || true
+          git push
           rm -f .github/moving-glow.css .github/input-glow.svg .github/profile-glow.svg .github/workflows/fix-moving-glow.yml
           git add -A
-          git diff --cached --quiet || (git commit -m 'Remove temporary glow patch files' && git push)
+          git diff --cached --quiet || git commit -m 'Remove temporary glow patch files'
+          git push || true
