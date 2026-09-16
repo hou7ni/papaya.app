@@ -1,0 +1,37 @@
+name: Fix moving glow borders
+on:
+  workflow_dispatch:
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch app
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('app.html')
+          s=p.read_text()
+          old='''.input-row{display:none;position:relative;align-items:stretch;gap:0;height:57px;opacity:0;transform:translateY(12px);transition:height .45s cubic-bezier(.22,1,.36,1),opacity .45s ease,transform .5s cubic-bezier(.16,1,.3,1);will-change:height;border:1px solid #dedede;border-radius:18px;background:#fff;overflow:hidden}.input-row:before{content:"";position:absolute;inset:-2px;border-radius:20px;padding:2px;background:conic-gradient(from 0deg,transparent 0deg,transparent 315deg,rgba(247,201,40,.2) 330deg,#fff 345deg,rgba(182,108,255,.85) 354deg,transparent 360deg);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;mask-composite:exclude;pointer-events:none;z-index:1;animation:inputBorder 2.8s linear infinite;transform-origin:center}.input-row:after{content:"";position:absolute;inset:0;border-radius:18px;background:#fff;z-index:0;pointer-events:none}'''
+          new='''.input-row{display:none;position:relative;align-items:stretch;gap:0;height:57px;opacity:0;transform:translateY(12px);transition:height .45s cubic-bezier(.22,1,.36,1),opacity .45s ease,transform .5s cubic-bezier(.16,1,.3,1);will-change:height;border:1px solid #dedede;border-radius:18px;background:#fff;overflow:hidden}.input-row:before{content:"";position:absolute;inset:0;border-radius:18px;border:1px solid #d8d8d8;pointer-events:none;z-index:3}.input-row:after{content:"";position:absolute;inset:0;border-radius:18px;background:#fff;z-index:0;pointer-events:none}.input-row .moving-glow{position:absolute;inset:0;width:100%;height:100%;z-index:4;pointer-events:none;overflow:visible}.input-row .moving-glow rect{fill:none;stroke:url(#inputGlow);stroke-width:2.8;stroke-linecap:round;stroke-dasharray:18 82;stroke-dashoffset:0;filter:url(#inputGlowFilter);animation:inputGlowTravel 3.6s linear infinite}'''
+          if old not in s: raise SystemExit('input CSS pattern not found')
+          s=s.replace(old,new)
+          old='''.profile{position:relative;margin-top:0;padding:12px;border:2px solid transparent;border-radius:16px;background:linear-gradient(#fff,#fff) padding-box,linear-gradient(135deg,#f7c928,#ff9d00,#b66cff,#f7c928) border-box;overflow:hidden;isolation:isolate}.profile:before{content:"";position:absolute;inset:-3px;border-radius:18px;padding:2px;background:conic-gradient(from 0deg,transparent 0deg,transparent 315deg,rgba(255,255,255,.25) 330deg,#fff 345deg,rgba(255,255,255,.25) 355deg,transparent 360deg);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;mask-composite:exclude;pointer-events:none;z-index:2;animation:profileBorder 2.8s linear infinite;transform-origin:center}.profile:after{display:none}'''
+          new='''.profile{position:relative;margin-top:0;padding:12px;border:1px solid #d6d6d6;border-radius:16px;background:#fff;overflow:hidden;isolation:isolate}.profile:before{content:"";position:absolute;inset:0;border-radius:16px;border:1px solid #d6d6d6;pointer-events:none;z-index:3}.profile:after{display:none}.profile .moving-glow{position:absolute;inset:0;width:100%;height:100%;z-index:4;pointer-events:none;overflow:visible}.profile .moving-glow rect{fill:none;stroke:url(#profileGlow);stroke-width:3.2;stroke-linecap:round;stroke-dasharray:24 76;stroke-dashoffset:0;filter:url(#profileGlowFilter);animation:profileGlowTravel 4s linear infinite}'''
+          if old not in s: raise SystemExit('profile CSS pattern not found')
+          s=s.replace(old,new)
+          old='''@keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}@keyframes pulse{0%,100%{transform:translateX(-50%) scale(.8);opacity:.45}50%{transform:translateX(-50%) scale(1.18);opacity:.9}}@keyframes spin{to{transform:rotate(360deg)}}@keyframes profileBorder{to{transform:rotate(360deg)}}@keyframes inputBorder{to{transform:rotate(360deg)}}'''
+          new='''@keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}@keyframes pulse{0%,100%{transform:translateX(-50%) scale(.8);opacity:.45}50%{transform:translateX(-50%) scale(1.18);opacity:.9}}@keyframes spin{to{transform:rotate(360deg)}}@keyframes profileGlowTravel{from{stroke-dashoffset:0}to{stroke-dashoffset:-100}}@keyframes inputGlowTravel{from{stroke-dashoffset:0}to{stroke-dashoffset:-100}}'''
+          if old not in s: raise SystemExit('keyframes pattern not found')
+          s=s.replace(old,new)
+          s=s.replace('<div class="input-row" id="inputRow"><textarea','<div class="input-row" id="inputRow"><svg class="moving-glow" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="inputGlow" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".35" stop-color="#f7c928"/><stop offset=".5" stop-color="#fff"/><stop offset=".65" stop-color="#b66cff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><filter id="inputGlowFilter" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="1.7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect x="1" y="1" width="98" height="98" rx="18" pathLength="100"/></svg><textarea')
+          s=s.replace('<div class="profile"><div class="profile-content">','<div class="profile"><svg class="moving-glow" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="profileGlow" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".32" stop-color="#f7c928"/><stop offset=".5" stop-color="#fff"/><stop offset=".68" stop-color="#b66cff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><filter id="profileGlowFilter" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect x="1" y="1" width="98" height="98" rx="16" pathLength="100"/></svg><div class="profile-content">')
+          s=s.replace('body.dark .input-row{background:#17191e;border-color:#383b42}','body.dark .input-row{background:#17191e;border-color:#383b42}body.dark .input-row:before{border-color:#383b42}body.dark .profile{background:#181a1f;border-color:#383b42}body.dark .profile:before{border-color:#383b42}')
+          s=s.replace('body.dark .profile{background:linear-gradient(#181a1f,#181a1f) padding-box,linear-gradient(135deg,#f7c928,#ff9d00,#b66cff,#f7c928) border-box;border-color:transparent}body.dark .profile:after{display:none}','body.dark .profile{background:#181a1f;border-color:#383b42}body.dark .profile:after{display:none}')
+          p.write_text(s)
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app.html
+          git commit -m 'Use true moving glow border animations' || exit 0
+          git push
