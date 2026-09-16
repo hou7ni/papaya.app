@@ -1,0 +1,35 @@
+name: Fix mobile app
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fix app.html
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('app.html')
+          s=p.read_text()
+          old="currentUser=session.user;const {data:profile}=await supabaseApp.from('profiles').select('is_premium').eq('id',currentUser.id).maybeSingle();if(profile?.is_premium===true)document.body.classList.add('premium-user');const meta=currentUser.user_metadata||{};"
+          new="currentUser=session.user;const {data:profile}=await supabaseApp.from('profiles').select('is_premium').eq('id',currentUser.id).maybeSingle();if(profile?.is_premium===true){document.body.classList.add('premium-user');document.getElementById('sidePremium').style.display='none'}const meta=currentUser.user_metadata||{};"
+          if old not in s: raise SystemExit('auth block not found')
+          s=s.replace(old,new,1)
+          duplicate="const {data:profile}=await supabaseApp.from('profiles').select('is_premium').eq('id',currentUser.id).maybeSingle();if(profile?.is_premium){document.getElementById('sidePremium').style.display='none';document.body.classList.add('is-premium')}"
+          if duplicate in s: s=s.replace(duplicate,'',1)
+          s=s.replace(".profile{position:relative;margin-top:0;padding:12px;border:2px solid transparent;border-radius:16px;background:linear-gradient(#fff,#fff) padding-box,conic-gradient(from var(--profile-angle),#f7c928,#ff9d00,#b66cff,#f7c928) border-box;overflow:hidden;isolation:isolate;--profile-angle:0deg}",".profile{position:relative;margin-top:0;padding:12px;border:2px solid transparent;border-radius:16px;background:linear-gradient(#fff,#fff) padding-box,conic-gradient(from var(--profile-angle),#f7c928,#ff9d00,#b66cff,#f7c928) border-box;overflow:hidden;isolation:isolate;--profile-angle:0deg;animation:profileBorder 4.2s linear infinite}",1)
+          s=s.replace("@media(max-width:700px){.header{padding:12px 16px}","@media(max-width:700px){html,body{height:100%;height:100dvh;overflow:hidden}.app,.main{height:100%;height:100dvh;min-height:0}.conversation{padding-bottom:270px}.composer{padding-left:10px;padding-right:10px;padding-bottom:calc(10px + env(safe-area-inset-bottom))}.composer-inner{padding:10px;border-radius:21px}.input-row{min-height:57px}.input-row:focus-within{height:min(140px,32dvh)}textarea{padding-right:50px}.send{width:42px;height:42px}.header{padding:12px 16px}",1)
+          p.write_text(s)
+          PY
+      - name: Commit fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app.html
+          git diff --cached --quiet && exit 0
+          git commit -m "Fix mobile layout and Premium detection"
+          git push
