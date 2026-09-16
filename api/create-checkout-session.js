@@ -6,7 +6,8 @@ module.exports = async function handler(req,res){
   try{
     const session=await stripe.checkout.sessions.create({
       mode:'subscription',
-      line_items:[{price:process.env.STRIPE_PREMIUM_PRICE_ID||'price_1UGD7bHnFIFV5heOSky6uOBZ',quantity:1}],
+      payment_method_types:['card','link'],
+      line_items:[{price:process.env.STRIPE_PREMIUM_PRICE_ID||'price_1UGDVfHnFIFV5heO6Nkpczk7',quantity:1}],
       ui_mode:'embedded',
       return_url:(process.env.APP_URL||'https://papaya-app.vercel.app')+'/premium.html?session_id={CHECKOUT_SESSION_ID}'
     });
