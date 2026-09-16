@@ -17,21 +17,14 @@ jobs:
           from pathlib import Path
           p=Path('app.html')
           s=p.read_text()
-          old='''@property --profile-angle{syntax:"<angle>";inherits:false;initial-value:0deg}@property --input-angle{syntax:"<angle>";inherits:false;initial-value:0deg}@keyframes spin{to{transform:rotate(360deg)}}@keyframes profileBorder{to{--profile-angle:360deg}}@keyframes inputBorder{to{--input-angle:360deg}}'''
-          new='''@keyframes spin{to{transform:rotate(360deg)}}@keyframes profileBorder{to{transform:rotate(360deg)}}@keyframes inputBorder{to{transform:rotate(360deg)}}'''
-          s=s.replace(old,new)
-          old='.profile{position:relative;margin-top:0;padding:12px;border:2px solid transparent;border-radius:16px;background:linear-gradient(#fff,#fff) padding-box,conic-gradient(from var(--profile-angle),#f7c928,#ff9d00,#b66cff,#f7c928) border-box;overflow:hidden;isolation:isolate;--profile-angle:0deg;animation:profileBorder 4.2s linear infinite}.profile:before{content:"";position:absolute;inset:-2px;border-radius:17px;padding:1px;background:conic-gradient(from var(--profile-angle),transparent 0deg,transparent 300deg,rgba(255,255,255,.95) 340deg,transparent 360deg);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;z-index:2}'
-          new='.profile{position:relative;margin-top:0;padding:12px;border:2px solid transparent;border-radius:16px;background:linear-gradient(#fff,#fff) padding-box,linear-gradient(135deg,#f7c928,#ff9d00,#b66cff,#f7c928) border-box;overflow:hidden;isolation:isolate}.profile:before{content:"";position:absolute;inset:-3px;border-radius:18px;padding:2px;background:conic-gradient(from 0deg,transparent 0deg,transparent 315deg,rgba(255,255,255,.25) 330deg,#fff 345deg,rgba(255,255,255,.25) 355deg,transparent 360deg);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;mask-composite:exclude;pointer-events:none;z-index:2;animation:profileBorder 2.8s linear infinite;transform-origin:center}'
-          s=s.replace(old,new)
-          old='.input-row:before{content:"";position:absolute;inset:-1px;border-radius:19px;padding:1px;background:conic-gradient(from var(--input-angle),transparent 0deg,transparent 305deg,rgba(247,201,40,.15) 325deg,rgba(255,255,255,.95) 345deg,rgba(182,108,255,.7) 355deg,transparent 360deg);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;z-index:0;--input-angle:0deg;animation:inputBorder 4.2s linear infinite}'
-          new='.input-row:before{content:"";position:absolute;inset:-2px;border-radius:20px;padding:2px;background:conic-gradient(from 0deg,transparent 0deg,transparent 315deg,rgba(247,201,40,.2) 330deg,#fff 345deg,rgba(182,108,255,.85) 354deg,transparent 360deg);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;mask-composite:exclude;pointer-events:none;z-index:0;animation:inputBorder 2.8s linear infinite;transform-origin:center}'
-          s=s.replace(old,new)
-          s=s.replace('body.dark .profile{background:#181a1f;border-color:transparent}', 'body.dark .profile{background:linear-gradient(#181a1f,#181a1f) padding-box,linear-gradient(135deg,#f7c928,#ff9d00,#b66cff,#f7c928) border-box;border-color:transparent}')
-          s=s.replace('body.dark .profile:after{background:#181a1f}', 'body.dark .profile:after{display:none}')
+          s=s.replace('z-index:0;animation:inputBorder 2.8s linear infinite;transform-origin:center}.input-row:after', 'z-index:1;animation:inputBorder 2.8s linear infinite;transform-origin:center}.input-row:after')
+          s=s.replace('body.dark .input-row:after{background:#17191e}', 'body.dark .input-row:after{background:#17191e}')
           p.write_text(s)
           PY
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add app.html
-          git commit -m 'Fix animated borders'
+          git commit -m 'Fix input animation visibility' || true
+          git rm .github/workflows/fix-animations.yml || true
+          git commit -m 'Remove temporary animation workflow' || true
           git push
